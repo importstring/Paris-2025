@@ -41,7 +41,7 @@ class Resources:
         The goal here is to anticipate all potential times we will need to
         use line following adapting this function to any and all scenerios. So that
         means adding extra optional params like time and next turn. Or even
-        next turns (Every single turn Ex: [LWLWLWLWWW]) so that we can control
+        next turns (Every single turn Ex: [LRLRLRLRRR]) so that we can control
         which direction the robot goes when line following. Additionally
         we need to anticipate the potential requirement for different 
         places that the color sensor can be. There are two color sensor placements
@@ -60,7 +60,7 @@ class Resources:
         |--> duration --> optional: int
         |-----> amount of time in seconds that the robot should do something for
         |--> turns --> optional: array
-        |------> ['W/L']
+        |------> ['R/L']
         """
         pass
 
