@@ -17,14 +17,14 @@ class PortInitialization:
         self.right_motor = port.B
         motor_pair.pair(motor_pair.PAIR_1, self.left_motor, self.right_motor)
         
-        self.left_sensor = port.C
-        self.right_sensor = port.D
+        self.left_sensor = port.C # 1
+        self.right_sensor = port.D # 2
         
         self.distance_sensor = port.E
 
         self.sensor_location = [
             [0, 1, 0],
-            [0, 1, 0],
+            [0, 2, 0],
             [0, 0, 0]
             ]
 
@@ -49,7 +49,7 @@ class Resources:
         E.g
         [
         [0, 1, 0],
-        [0, 1, 0],
+        [0, 2, 0],
         [0, 0, 0]
         ]
 
