@@ -34,7 +34,7 @@ class Resources:
     throw our way.
     """
     def __init__(self):
-        ports = PortInitialization()
+        self.ports = PortInitialization()
 
     def line_follower(self, duration=None, turns=[]):
         """
@@ -62,9 +62,22 @@ class Resources:
         |--> turns --> optional: array
         |------> ['R/L']
         """
+        line_follow = LineFollowing(self.ports)
+        if sum([sum(self.ports.sensor_location[1]), sum(self.ports.sensor_location[2]), sum(self.ports.sensor_location[3])]) > 2:
+            line_follow.dual_sensor()
+        else:
+            line_follow.single_sensor()
+
+
+class LineFollowing:
+    def __init__(self, ports):
+        self.ports = ports
+
+    def dual_sensor(self):
         pass
 
-
+    def single_sensor(self):
+        pass
 
 class Controls:
     def __init__(self, port_init):
