@@ -1,84 +1,84 @@
 import motor_pair
 import color_sensor
 import time
-import distance_sensor
-import force_sensor
-from hub import port, button, light_matrix, motion_sensor, sound
-import color
+from hub import port, button, light_matrix
 
 class PortInitialization:
     def __init__(self):
-        """
-        This class serves as a way to easily change the ports on the fly in an easy and organized fashion
-        where everything is labled and easy to change.
-        """
-
         self.left_motor = port.A
         self.right_motor = port.B
         motor_pair.pair(motor_pair.PAIR_1, self.left_motor, self.right_motor)
 
-        self.first_color_sensor = port.C # 1
-        self.second_color_sensor = port.D # 2
-
-        self.distance_sensor = port.E
-
         self.sensor_location = [
-            [0, 1, 0],
-            [0, 2, 0],
+            [0, 1, 0],# Sensor 1 at position (0,1)
+            [0, 2, 0],# Sensor 2 at position (1,1)
             [0, 0, 0]
-            ]
-
-class Resources:
-    """
-    This class serves the function of allowing us to adapt on the fly to any conditions Paris might
-    throw our way.
-    """
-    def __init__(self):
-        self.ports = PortInitialization()
-
-    def line_follower(self, duration=None, turns=[]):
-        """
-        The goal here is to anticipate all potential times we will need to
-        use line following adapting this function to any and all scenerios. So that
-        means adding extra optional params like time and next turn. Or even
-        next turns (Every single turn Ex: [LRLRLRLRRR]) so that we can control
-        which direction the robot goes when line following. Additionally
-        we need to anticipate the potential requirement for different
-        places that the color sensor can be. There are two color sensor placements
-        and we need to anticipate that this may change so we need sub logic.
-        E.g
-        [
-        [0, 1, 0],
-        [0, 2, 0],
-        [0, 0, 0]
         ]
 
-        Params:
-        |--> self
-        |----> motors
-        |----> sensor placement
-        |--> duration --> optional: int
-        |-----> amount of time in seconds that the robot should do something for
-        |--> turns --> optional: array
-        |------> ['R/L']
-        """
-        line_follow = LineFollowing(self.ports)
-        if sum([sum(self.ports.sensor_location[1]), sum(self.ports.sensor_location[2]), sum(self.ports.sensor_location[3])]) > 2:
-            line_follow.dual_sensor()
-        else:
-            line_follow.single_sensor()
+        # Map sensor numbers to ports
+        self.sensors = {
+            1: port.C if any(1 in row for row in self.sensor_location) else None,
+            2: port.D if any(2 in row for row in self.sensor_location) else None
+        }
 
-
-class LineFollowing:
+class LineFollower:
     def __init__(self, ports):
         self.ports = ports
+        self.base_speed = 40# Conservative speed for reliability
+        self.threshold = 50# Prime Lessons recommended midpoint
 
-    def dual_sensor(self):
-        pass
+        # Validate sensors
+        self.active_sensors = self._validate_sensors()
 
-    def single_sensor(self):
-        pass
+    def _validate_sensors(self):
+        """Check which sensors are properly configured"""
+        return {
+            1: self.ports.sensors[1] is not None and color_sensor.reflection(self.ports.sensors[1]) is not None,
+            2: self.ports.sensors[2] is not None and color_sensor.reflection(self.ports.sensors[2]) is not None
+        }
 
-class Controls:
-    def __init__(self, port_init):
-        pass
+    def _get_main_sensor(self):
+        """Get primary sensor based on sensor_location configuration"""
+        if self.active_sensors[1]:
+            return self.ports.sensors[1]
+        elif self.active_sensors[2]:
+            return self.ports.sensors[2]
+        else:
+            raise ValueError("No valid color sensors detected!")
+
+    def simple_follow(self):
+        """Prime Lessons' basic line following algorithm"""
+        sensor = self._get_main_sensor()
+        try:
+            while True:
+                reflection = color_sensor.reflection(sensor)
+
+                # Basic edge following logic
+                if reflection < self.threshold:
+                    # On line - turn right
+                    motor_pair.move(motor_pair.PAIR_1, 100, velocity=self.base_speed)
+                else:
+                    # Off line - turn left
+                    motor_pair.move(motor_pair.PAIR_1, -100, velocity=self.base_speed)
+
+        except Exception as e:
+            print(f"Error: {e}")
+        finally:
+            motor_pair.stop(motor_pair.PAIR_1)
+
+class Resources:
+    def __init__(self):
+        self.ports = PortInitialization()
+        self.follower = LineFollower(self.ports)
+
+    def line_follower(self, duration=None):
+        """Simple line following entry point"""
+        if not any(self.follower.active_sensors.values()):
+            raise ValueError("No valid color sensors detected!")
+
+        print("Starting line following...")
+        self.follower.simple_follow()
+
+if __name__ == "__main__":
+    bot = Resources()
+    bot.line_follower()
