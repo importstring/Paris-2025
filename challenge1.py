@@ -58,7 +58,14 @@ class BlockPositioner:
         motor_pair.move_tank_for_degrees(motor_pair.PAIR_1, -180, 100, -100)
         motor_pair.move_tank_for_degrees(motor_pair.PAIR_1, 360, 200, 200)
 
+        # Optimal 180° turn calculation
+        WHEEL_DIAMETER_MM = 56# SPIKE Prime medium wheel
+        AXLE_TRACK_MM = 120    # Distance between wheels
+        TURN_DEGREES = (AXLE_TRACK_MM * 180) / (WHEEL_DIAMETER_MM / 2)
+
         
+        motor_pair.move_for_time(motor_pair.PAIR_1, 1000, 0, velocity=-100)
+        motor_pair.move_tank_for_degrees(motor_pair.PAIR_1, int(TURN_DEGREES), 100, -100)
 
 
     def complete_sequence(self):
